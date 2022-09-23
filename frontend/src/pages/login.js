@@ -7,7 +7,8 @@ import { Box, Button, Container, Grid, Link, TextField, Typography } from '@mui/
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { Facebook as FacebookIcon } from '../icons/facebook';
 import { Google as GoogleIcon } from '../icons/google';
-
+import { useState , useEffect } from 'react';
+import axios from 'axios';
 const Login = () => {
   const router = useRouter();
   const formik = useFormik({
@@ -29,10 +30,22 @@ const Login = () => {
         .required(
           'Password is required')
     }),
-    onSubmit: () => {
-      router.push('/');
-    }
   });
+  const [email, setEmail] = useState("");
+  const onSubmit = (event)=> {
+    event.preventDefault();
+    axios.post('https://sheet.best/api/sheets/73238808-4d9f-40da-b355-7c9d8de72115' , 
+    {
+      email: email
+    }).then((response) => {
+      console.log(response);
+    }
+    
+    )
+    .catch((error) => {
+      console.log(error);
+    })
+  };
 
   return (
     <>
@@ -66,67 +79,17 @@ const Login = () => {
                 color="textPrimary"
                 variant="h4"
               >
-                Sign in
+              Join our mailing list !!
               </Typography>
               <Typography
                 color="textSecondary"
                 gutterBottom
                 variant="body2"
               >
-                Sign in on the internal platform
+                Register your email alerts and don't miss on important updates on air quality and pollution.
               </Typography>
             </Box>
-            <Grid
-              container
-              spacing={3}
-            >
-              <Grid
-                item
-                xs={12}
-                md={6}
-              >
-                <Button
-                  color="info"
-                  fullWidth
-                  startIcon={<FacebookIcon />}
-                  onClick={formik.handleSubmit}
-                  size="large"
-                  variant="contained"
-                >
-                  Login with Facebook
-                </Button>
-              </Grid>
-              <Grid
-                item
-                xs={12}
-                md={6}
-              >
-                <Button
-                  fullWidth
-                  color="error"
-                  startIcon={<GoogleIcon />}
-                  onClick={formik.handleSubmit}
-                  size="large"
-                  variant="contained"
-                >
-                  Login with Google
-                </Button>
-              </Grid>
-            </Grid>
-            <Box
-              sx={{
-                pb: 1,
-                pt: 3
-              }}
-            >
-              <Typography
-                align="center"
-                color="textSecondary"
-                variant="body1"
-              >
-                or login with email address
-              </Typography>
-            </Box>
+           
             <TextField
               error={Boolean(formik.touched.email && formik.errors.email)}
               fullWidth
@@ -135,24 +98,12 @@ const Login = () => {
               margin="normal"
               name="email"
               onBlur={formik.handleBlur}
-              onChange={formik.handleChange}
               type="email"
-              value={formik.values.email}
+              value={email}
+              onChange = {(event) => setEmail(event.target.value)}
               variant="outlined"
             />
-            <TextField
-              error={Boolean(formik.touched.password && formik.errors.password)}
-              fullWidth
-              helperText={formik.touched.password && formik.errors.password}
-              label="Password"
-              margin="normal"
-              name="password"
-              onBlur={formik.handleBlur}
-              onChange={formik.handleChange}
-              type="password"
-              value={formik.values.password}
-              variant="outlined"
-            />
+          
             <Box sx={{ py: 2 }}>
               <Button
                 color="primary"
@@ -161,31 +112,12 @@ const Login = () => {
                 size="large"
                 type="submit"
                 variant="contained"
+                onClick={onSubmit}
               >
-                Sign In Now
+                Subscribe Now
               </Button>
             </Box>
-            <Typography
-              color="textSecondary"
-              variant="body2"
-            >
-              Don&apos;t have an account?
-              {' '}
-              <NextLink
-                href="/register"
-              >
-                <Link
-                  to="/register"
-                  variant="subtitle2"
-                  underline="hover"
-                  sx={{
-                    cursor: 'pointer'
-                  }}
-                >
-                  Sign Up
-                </Link>
-              </NextLink>
-            </Typography>
+      
           </form>
         </Container>
       </Box>

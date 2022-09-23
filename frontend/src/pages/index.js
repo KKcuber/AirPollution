@@ -1,13 +1,10 @@
 import Head from 'next/head';
 import {Card,CardContent,LinearProgress, Box, Typography,Container, Grid } from '@mui/material';
-import { TemperatureAverage } from '../components/dashboard/temperatureAverage';
 import { BarChart } from "../components/dashboard/barChart";
-import { AverageVOCIndexl } from '../components/dashboard/AverageVOC';
-import { AverageHumidity } from '../components/dashboard/averageHumidity';
-import { AverageCO2 } from '../components/dashboard/AverageCO2';
 import { DashboardLayout } from '../components/dashboard-layout';
 import { useState , useEffect } from 'react';
 import axios from 'axios';
+import emailjs from 'emailjs-com';
 const Dashboard = (props) => {
   
 const [temperatureData , setTemperatureData] = useState([]);
@@ -27,7 +24,55 @@ const [VOCData , setVOCData] = useState([]);
 const [VOCTimeStamps , setVOCTimeStamps] = useState([]);
 const [PM10Data , setPM10Data] = useState([]);
 const [PM10TimeStamps , setPM10TimeStamps] = useState([]);
+const [senderList, setSenderList] = useState([]);
+ 
 const URL = "https://api.thingspeak.com/channels/1847318/feeds.json?results=20";
+const day = 24*60*60*1000;
+useEffect(() => {
+    axios.get('https://sheet.best/api/sheets/73238808-4d9f-40da-b355-7c9d8de72115')
+      .then((response) => {
+        console.log(response.data);
+        setSenderList(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, []);
+
+  function alertMail(param)
+  {
+    senderList.map((sender) => {
+      emailjs.send('service_kkhg118', 'template_hehst4m', {
+        to_name: sender.email,
+        from_name: 'Air Quality Monitoring System',
+        message: `The air quality is not good. Please take necessary precautions, the ${param.param} is not in safebounds.`
+      }, 'Vp7d1tWms0HzY7lnZ')
+        .then((result) => {
+          console.log(result.text);
+        }, (error) => {
+          console.log(error.text);
+        });
+    })   
+  }
+
+  function MassEmail(){  
+    senderList.map((sender) => {
+      emailjs.send('service_kkhg118', 'template_uecd639', {email: sender , CO2 : averageCO2,humi : averageHumidity ,Temp : averageTemperature, PM25 : averagePM2_5 , PM10 : averagePM2_5 , VOC : averageVOC}, 'Vp7d1tWms0HzY7lnZ')
+    .then((result) => {
+        console.log(averageCO2 , averageHumidity , averageTemperature , averagePM2_5 , averageVOC);
+        alert("Email Sent Successfully");
+    }
+    , (error) => {
+        console.log(error.text);
+    });});
+  }
+
+  setTimeout(() => {
+    MassEmail();
+  }, day);
+    
+
+
 const getData = () =>
 {
     axios.get(URL)
@@ -51,7 +96,7 @@ const getData = () =>
     let PM10 = [];
     let TempPM10TimeStamps = [];
     response.data.feeds.map((data) => {
-      if(data.field2 != null)
+      if(data.field2 != null && data.field2 <=20)
       {
         PM10.push(data.field2);
         TempPM10TimeStamps.push(data.created_at);
@@ -66,12 +111,12 @@ const getData = () =>
         TemphumidityTimeStamps.push(data.created_at);
         totalHumidity += parseFloat(data.field3);   
       }
-      if(data.field1 != null){
+      if(data.field1 != null &&data.field1<=20) {
         PM25.push(data.field1);
         TempPM25TimeStamps.push(data.created_at);
         totalPM25 += parseFloat(data.field1);
       }
-      if(data.field6 != null){
+      if(data.field6 != null && data.field6 <=15){
         totalVOC += parseFloat(data.field6);
         TempVOCTimeStamps.push(data.created_at);
         VOC.push(data.field6);
@@ -83,15 +128,21 @@ const getData = () =>
       }
     });
     setTemperatureData(temperature);
-    setTimeStamps(TemptimeStamps);
+    let tt = [];
+    TemptimeStamps.forEach((time) => {
+      const date = new Date(time);
+      const timeString = date.toLocaleTimeString();
+      tt.push(timeString);
+    });
+    setTimeStamps(tt);
     setHumidityData(humidity);
-    setHumidityTimeStamps(TemphumidityTimeStamps);
+    setHumidityTimeStamps(tt);
     setPM25Data(PM25);
-    setPM25TimeStamps(TempPM25TimeStamps);
+    setPM25TimeStamps(tt);
     setVOCData(VOC);
-    setVOCTimeStamps(TempVOCTimeStamps);
+    setVOCTimeStamps(tt);
     setCO2Data(CO2);
-    setCO2TimeStamps(TempCO2TimeStamps);
+    setCO2TimeStamps(tt);
     const tempAvg = (temperature.length) ? totalTemperature / temperature.length : 0.0;
     const humidityAvg = (humidity.length) ? totalHumidity / humidity.length : 0.0;
     const PM25Avg = (PM25.length) ? totalPM25 / PM25.length : 0.0;
@@ -103,12 +154,12 @@ const getData = () =>
     setAverageVOC(VOCAvg);
     setAverageCO2(CO2Avg);
     setPM10Data(PM10);
-    setPM10TimeStamps(TempPM10TimeStamps);
+    setPM10TimeStamps(tt);
   })
   .catch((error) => {
     console.log(error);
   });
-
+  
       // axios.get(URL)
       // .then((response) => {
       // const feeds2 = response.data.feeds;
@@ -150,6 +201,9 @@ const getData = () =>
       // setTemperatureData(tempTemperatureData);
       // setTimeStamps(tempTimeStamps);
 };
+useEffect(() => {
+
+}, [averageTemperature,averageHumidity,averagePM2_5,averageVOC,averageCO2]);
 setInterval(getData, 4000);
   return (
     <div>
