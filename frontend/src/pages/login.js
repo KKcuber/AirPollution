@@ -86,7 +86,7 @@ const Login = () => {
                 gutterBottom
                 variant="body2"
               >
-                Register your email alerts and don't miss on important updates on air quality and pollution.
+                Register your email alerts and dont miss on important updates on air quality and pollution.
               </Typography>
             </Box>
            
