@@ -96,7 +96,7 @@ const getData = () =>
     let PM10 = [];
     let TempPM10TimeStamps = [];
     response.data.feeds.map((data) => {
-      if(data.field2 != null && data.field2 <=20)
+      if(data.field2 != null )
       {
         PM10.push(data.field2);
         TempPM10TimeStamps.push(data.created_at);
@@ -111,12 +111,12 @@ const getData = () =>
         TemphumidityTimeStamps.push(data.created_at);
         totalHumidity += parseFloat(data.field3);   
       }
-      if(data.field1 != null &&data.field1<=20) {
+      if(data.field1 != null) {
         PM25.push(data.field1);
         TempPM25TimeStamps.push(data.created_at);
         totalPM25 += parseFloat(data.field1);
       }
-      if(data.field6 != null && data.field6 <=15){
+      if(data.field6 != null){
         totalVOC += parseFloat(data.field6);
         TempVOCTimeStamps.push(data.created_at);
         VOC.push(data.field6);
